@@ -1,6 +1,10 @@
 package main
 
-import "encoding/json"
+import (
+	"encoding/json"
+
+	"github.com/n8sPxD/mcp-server-demo/tools"
+)
 
 // JSONRPCVersion 是固定的 JSON-RPC 版本号
 const JSONRPCVersion = "2.0"
@@ -71,29 +75,9 @@ type ServerInfo struct {
 	Version string `json:"version,omitempty"`
 }
 
-// ToolParameterProperties 定义了工具参数的属性
-type ToolParameterProperties struct {
-	Type        string `json:"type"`
-	Description string `json:"description,omitempty"`
-}
-
-// ToolParameters 定义了工具的参数结构
-type ToolParameters struct {
-	Type       string                             `json:"type"` // 通常是 "object"
-	Properties map[string]ToolParameterProperties `json:"properties"`
-	Required   []string                           `json:"required,omitempty"`
-}
-
-// ToolDefinition 定义了一个工具
-type ToolDefinition struct {
-	Name        string         `json:"name"`
-	Description string         `json:"description,omitempty"`
-	InputSchema ToolParameters `json:"inputSchema"`
-}
-
 // ServerCapabilities 定义了服务器的能力
 type ServerCapabilities struct {
-	Tools map[string]ToolDefinition `json:"tools,omitempty"`
+	Tools map[string]tools.ToolDefinition `json:"tools,omitempty"`
 	// 可以添加其他能力，例如 textDocumentSync, completionProvider 等
 }
 
@@ -107,17 +91,6 @@ type InitializeResult struct {
 // InitializedParams 是 initialized 通知的参数 (通常为空)
 type InitializedParams struct{}
 
-// ExecuteToolParams 是 mcp/tool/execute 请求的参数
-type ExecuteToolParams struct {
-	ToolName string         `json:"name"`
-	Inputs   map[string]any `json:"arguments"`
-}
-
-// ExecuteToolResult 是 mcp/tool/execute 请求成功时的结果
-type ExecuteToolResult struct {
-	Content []map[string]any `json:"content"`
-}
-
 // ShutdownParams 是 shutdown 请求的参数 (通常为空或null)
 type ShutdownParams struct{}
 
@@ -129,5 +102,5 @@ type ListToolsParams struct{}
 
 // ListToolsResult 是 tools/list 请求成功时的结果
 type ListToolsResult struct {
-	Tools []ToolDefinition `json:"tools"`
+	Tools []tools.ToolDefinition `json:"tools"`
 }

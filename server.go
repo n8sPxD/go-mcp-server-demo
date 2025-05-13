@@ -6,25 +6,27 @@ import (
 	"io"
 	"log"
 	"os"
+
+	"github.com/n8sPxD/mcp-server-demo/tools"
 )
 
 // MCPServer 定义了 MCP 服务器的状态和能力
 type MCPServer struct {
-	reader         io.Reader
-	writer         io.Writer
-	logger         *log.Logger
-	tools          map[string]ToolDefinition
-	initialized    bool
+	reader      io.Reader
+	writer      io.Writer
+	logger      *log.Logger
+	tools       tools.ToolsMap
+	initialized bool
+
 	shutdownSignal chan struct{} // 用于通知主循环服务器已关闭
 }
 
-// NewMCPServer 创建一个新的 MCP 服务器实例
 func NewMCPServer(reader io.Reader, writer io.Writer) *MCPServer {
 	return &MCPServer{
 		reader:         reader,
 		writer:         writer,
 		logger:         log.New(os.Stderr, "[MCP Server] ", log.LstdFlags),
-		tools:          make(map[string]ToolDefinition),
+		tools:          make(map[string]tools.ToolDefinition),
 		initialized:    false,
 		shutdownSignal: make(chan struct{}),
 	}
@@ -117,20 +119,8 @@ func (s *MCPServer) handleInitialize(req RequestMessage) {
 	}
 
 	// 将 Tools 从数组改为 map
-	toolsMap := make(map[string]ToolDefinition)
-	getWeatherTool := ToolDefinition{
-		Name:        "get_weather",
-		Description: "Fetches the current weather for a given location.",
-		InputSchema: ToolParameters{
-			Type: "object",
-			Properties: map[string]ToolParameterProperties{
-				"location": {Type: "string", Description: "The city name to get weather for."},
-			},
-			Required: []string{"location"},
-		},
-	}
-	toolsMap[getWeatherTool.Name] = getWeatherTool
-	s.tools = toolsMap // <--- 将构建的 toolsMap 赋值给 s.tools
+	toolsMap := tools.NewToolsMap()
+	s.tools = toolsMap
 
 	capabilities := ServerCapabilities{
 		Tools: s.tools, // <--- 使用 s.tools
@@ -171,14 +161,14 @@ func (s *MCPServer) handleExit(notif NotificationMessage) {
 	close(s.shutdownSignal) // 发送关闭信号
 }
 
-// handleExecuteTool 处理 mcp/tool/execute 请求
+// handleExecuteTool 处理 tools/call 请求
 func (s *MCPServer) handleExecuteTool(req RequestMessage) {
 	if !s.initialized {
 		s.sendResponse(req.ID, nil, &ErrorObject{Code: InternalErrorCode, Message: "Server not initialized"})
 		return
 	}
 
-	var params ExecuteToolParams
+	var params tools.ExecuteToolParams
 	if err := json.Unmarshal(req.Params, &params); err != nil {
 		s.sendResponse(req.ID, nil, &ErrorObject{Code: InvalidParamsCode, Message: "Invalid params for tools/call"})
 		return
@@ -186,39 +176,15 @@ func (s *MCPServer) handleExecuteTool(req RequestMessage) {
 
 	s.logger.Printf("Executing tool: %s with inputs: %+v\n", params.ToolName, params.Inputs)
 
-	if params.ToolName == "get_weather" {
-		location, ok := params.Inputs["location"].(string)
-		if !ok || location == "" {
-			s.sendResponse(req.ID, nil, &ErrorObject{Code: InvalidParamsCode, Message: "Missing or invalid 'location' parameter for get_weather tool"})
+	switch params.ToolName {
+	case "get_weather":
+		content, err := tools.GetWeather(params.Inputs["city"].(string))
+		if err != nil {
+			s.sendResponse(req.ID, nil, &ErrorObject{Code: InternalErrorCode, Message: err.Error()})
 			return
 		}
-
-		// 模拟天气获取
-		weather := "Sunny"
-		temperature := "25°C"
-		if location == "London" {
-			weather = "Cloudy"
-			temperature = "15°C"
-		} else if location == "Tokyo" {
-			weather = "Rainy"
-			temperature = "20°C"
-		}
-
-		// 将天气信息格式化为字符串
-		weatherString := fmt.Sprintf("City: %s, Temperature: %s, Weather: %s", location, temperature, weather)
-
-		// 构建符合客户端期望的 text content block
-		textContentBlock := map[string]any{
-			"type": "text",
-			"text": weatherString,
-		}
-
-		// 将 text content block 包装在 Content 数组中
-		result := ExecuteToolResult{
-			Content: []map[string]any{textContentBlock},
-		}
-		s.sendResponse(req.ID, result, nil)
-	} else {
+		s.sendResponse(req.ID, content, nil)
+	default:
 		s.sendResponse(req.ID, nil, &ErrorObject{Code: MethodNotFoundCode, Message: fmt.Sprintf("Tool '%s' not found", params.ToolName)})
 	}
 }
@@ -233,7 +199,7 @@ func (s *MCPServer) handleListTools(req RequestMessage) {
 	s.logger.Println("ListTools request received.")
 
 	// 将 s.tools (map) 转换为 []ToolDefinition
-	var toolsArray []ToolDefinition
+	var toolsArray []tools.ToolDefinition
 	for _, toolDef := range s.tools {
 		toolsArray = append(toolsArray, toolDef)
 	}
