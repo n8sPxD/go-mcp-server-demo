@@ -178,7 +178,7 @@ func (s *MCPServer) handleExecuteTool(req RequestMessage) {
 
 	switch params.ToolName {
 	case "get_weather":
-		content, err := tools.GetWeather(params.Inputs["city"].(string))
+		content, err := tools.GetWeather(params.Inputs["location"].(string))
 		if err != nil {
 			s.sendResponse(req.ID, nil, &ErrorObject{Code: InternalErrorCode, Message: err.Error()})
 			return

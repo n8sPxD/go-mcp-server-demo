@@ -8,9 +8,9 @@ var (
 			InputSchema: ToolParameters{
 				Type: "object",
 				Properties: map[string]ToolParameterProperties{
-					"city": {Type: "string", Description: "The city name to get weather for."},
+					"location": {Type: "string", Description: "The location latitude/longitude (Decimal degree) e.g: q=48.8567,2.3508 to get weather for."},
 				},
-				Required: []string{"city"},
+				Required: []string{"location"},
 			},
 		},
 	}
