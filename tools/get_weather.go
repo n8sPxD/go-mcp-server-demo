@@ -43,7 +43,21 @@ func GetWeather(location string) (*ExecuteToolResult, error) {
 }
 
 func getWeather(location string) (*CommonWeatherResponse, error) {
-	weatherGetter, err := NewWeatherAPIWeatherGetter()
+	// 通过检查os.Getenv来确定用哪一个
+	var weatherGetter WeatherGetter
+	var err error
+
+	googleAPIKey := os.Getenv("GOOGLE_MAP_API_KEY")
+	weatherAPIKey := os.Getenv("WEATHER_API_KEY")
+
+	if googleAPIKey != "" {
+		weatherGetter, err = NewGoogleMapWeatherGetter()
+	} else if weatherAPIKey != "" {
+		weatherGetter, err = NewWeatherAPIWeatherGetter()
+	} else {
+		return nil, errors.New("neither GOOGLE_MAP_API_KEY nor WEATHER_API_KEY is set in environment variables")
+	}
+
 	if err != nil {
 		return nil, err
 	}
@@ -60,6 +74,10 @@ type CommonWeatherResponse struct {
 	Weather  string  `json:"weather"`
 }
 
+type GoogleMapWeatherGetter struct {
+	apiKey string
+}
+
 type WeatherAPIWeatherGetter struct {
 	apiKey string
 }
@@ -70,6 +88,19 @@ func NewWeatherAPIWeatherGetter() (WeatherGetter, error) {
 		return nil, errors.New("WEATHER_API_KEY is not set, please set it in the environment variables")
 	}
 	return &WeatherAPIWeatherGetter{apiKey: apiKey}, nil
+}
+
+func NewGoogleMapWeatherGetter() (WeatherGetter, error) {
+	apiKey := os.Getenv("GOOGLE_MAP_API_KEY")
+	if apiKey == "" {
+		return nil, errors.New("GOOGLE_MAP_API_KEY is not set, please set it in the environment variables")
+	}
+	return &GoogleMapWeatherGetter{apiKey: apiKey}, nil
+}
+
+func (g *GoogleMapWeatherGetter) GetWeather(location string) (*CommonWeatherResponse, error) {
+	// TODO: Implement Google Map Weather API
+	return nil, errors.New("not implemented")
 }
 
 type WeatherAPIParams struct {

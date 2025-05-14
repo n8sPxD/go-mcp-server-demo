@@ -1,20 +1,40 @@
 package tools
 
-var (
-	supportTools = []ToolDefinition{
-		{
-			Name:        "get_weather",
-			Description: "Fetches the current weather for a given location.",
-			InputSchema: ToolParameters{
-				Type: "object",
-				Properties: map[string]ToolParameterProperties{
-					"location": {Type: "string", Description: "The location latitude/longitude (Decimal degree) e.g: q=48.8567,2.3508 to get weather for."},
-				},
-				Required: []string{"location"},
+var ToolFuncMap = map[string]func(inputs map[string]any) (*ExecuteToolResult, error){
+	"get_weather": func(inputs map[string]any) (*ExecuteToolResult, error) {
+		return GetWeather(inputs["location"].(string))
+	},
+	"caculator": func(inputs map[string]any) (*ExecuteToolResult, error) {
+		return ExecuteCaculate(inputs["operation"].(string), inputs["num1"].(float64), inputs["num2"].(float64))
+	},
+}
+
+var supportTools = []ToolDefinition{
+	{
+		Name:        "get_weather",
+		Description: "Fetches the current weather for a given location.",
+		InputSchema: ToolParameters{
+			Type: "object",
+			Properties: map[string]ToolParameterProperties{
+				"location": {Type: "string", Description: "The location latitude/longitude (Decimal degree) e.g: q=48.8567,2.3508 to get weather for."},
 			},
+			Required: []string{"location"},
 		},
-	}
-)
+	},
+	{
+		Name:        "caculator",
+		Description: "A simple calculator tool that can add, subtract, multiply, and divide.",
+		InputSchema: ToolParameters{
+			Type: "object",
+			Properties: map[string]ToolParameterProperties{
+				"operation": {Type: "string", Description: "The operation to perform. Can be 'add', 'subtract', 'multiply', or 'divide'."},
+				"num1":      {Type: "number", Description: "The first number."},
+				"num2":      {Type: "number", Description: "The second number."},
+			},
+			Required: []string{"operation", "num1", "num2"},
+		},
+	},
+}
 
 // ToolParameterProperties 定义了工具参数的属性
 type ToolParameterProperties struct {

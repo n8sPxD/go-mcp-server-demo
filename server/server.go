@@ -1,4 +1,4 @@
-package main
+package server
 
 import (
 	"encoding/json"
@@ -18,7 +18,7 @@ type MCPServer struct {
 	tools       tools.ToolsMap
 	initialized bool
 
-	shutdownSignal chan struct{} // 用于通知主循环服务器已关闭
+	ShutdownSignal chan struct{} // 用于通知主循环服务器已关闭
 }
 
 func NewMCPServer(reader io.Reader, writer io.Writer) *MCPServer {
@@ -28,7 +28,7 @@ func NewMCPServer(reader io.Reader, writer io.Writer) *MCPServer {
 		logger:         log.New(os.Stderr, "[MCP Server] ", log.LstdFlags),
 		tools:          make(map[string]tools.ToolDefinition),
 		initialized:    false,
-		shutdownSignal: make(chan struct{}),
+		ShutdownSignal: make(chan struct{}),
 	}
 }
 
@@ -158,7 +158,7 @@ func (s *MCPServer) handleShutdown(req RequestMessage) {
 // handleExit 处理 exit 通知
 func (s *MCPServer) handleExit(notif NotificationMessage) {
 	s.logger.Println("Exit notification received. Server shutting down.")
-	close(s.shutdownSignal) // 发送关闭信号
+	close(s.ShutdownSignal) // 发送关闭信号
 }
 
 // handleExecuteTool 处理 tools/call 请求
@@ -176,15 +176,14 @@ func (s *MCPServer) handleExecuteTool(req RequestMessage) {
 
 	s.logger.Printf("Executing tool: %s with inputs: %+v\n", params.ToolName, params.Inputs)
 
-	switch params.ToolName {
-	case "get_weather":
-		content, err := tools.GetWeather(params.Inputs["location"].(string))
+	if toolFunc, ok := tools.ToolFuncMap[params.ToolName]; ok {
+		content, err := toolFunc(params.Inputs)
 		if err != nil {
 			s.sendResponse(req.ID, nil, &ErrorObject{Code: InternalErrorCode, Message: err.Error()})
 			return
 		}
 		s.sendResponse(req.ID, content, nil)
-	default:
+	} else {
 		s.sendResponse(req.ID, nil, &ErrorObject{Code: MethodNotFoundCode, Message: fmt.Sprintf("Tool '%s' not found", params.ToolName)})
 	}
 }
@@ -211,7 +210,7 @@ func (s *MCPServer) handleListTools(req RequestMessage) {
 }
 
 // processMessage 解析并处理单个消息
-func (s *MCPServer) processMessage(rawMessage []byte) {
+func (s *MCPServer) ProcessMessage(rawMessage []byte) {
 	s.logger.Printf("Received raw message: %s\n", string(rawMessage))
 
 	// 首先尝试解析基本结构，以判断是请求还是通知 (通过有无ID)

@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"log"
 	"os"
+
+	"github.com/n8sPxD/mcp-server-demo/server"
 )
 
 func main() {
@@ -23,7 +25,7 @@ func main() {
 	stdinReader := bufio.NewReader(os.Stdin)
 	stdoutWriter := bufio.NewWriter(os.Stdout)
 
-	server := NewMCPServer(stdinReader, stdoutWriter)
+	server := server.NewMCPServer(stdinReader, stdoutWriter)
 	logger.Println("MCP server instance created. Waiting for messages...")
 
 	go func() {
@@ -37,7 +39,7 @@ func main() {
 				continue
 			}
 			logger.Printf("DEBUG: Received message line: %s", string(messageBytes)) // 调试日志
-			server.processMessage(messageBytes)
+			server.ProcessMessage(messageBytes)
 		}
 
 		if err := scanner.Err(); err != nil {
@@ -45,10 +47,10 @@ func main() {
 		}
 		logger.Println("Stdin scanner finished.")
 		// 如果输入结束，也应该关闭服务器
-		close(server.shutdownSignal)
+		close(server.ShutdownSignal)
 	}()
 
 	// 等待服务器关闭信号
-	<-server.shutdownSignal
+	<-server.ShutdownSignal
 	logger.Println("MCP server shut down gracefully.")
 }
