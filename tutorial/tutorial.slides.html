@@ -7453,8 +7453,217 @@ main {
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <h5 id="%E7%97%9B%E7%82%B9">痛点<a class="anchor-link" href="#%E7%97%9B%E7%82%B9">¶</a></h5><ul>
-<li>语言模型无法获取对于自身数据库以外的数据，例如各种实时数据</li>
+<li>语言模型知识数据库有限</li>
+<li>早期语言模型能力不够强大，幻觉严重</li>
 </ul>
+<h5 id="%E9%9C%80%E6%B1%82">需求<a class="anchor-link" href="#%E9%9C%80%E6%B1%82">¶</a></h5><ul>
+<li>让语言模型可以获取到最新的数据</li>
+<li>基于语言模型更多权限，能够与聊天以外的工具进行交互</li>
+</ul>
+</div>
+</div>
+</div>
+</div></section></section><section><section>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h4 id="Tool-Use">Tool Use<a class="anchor-link" href="#Tool-Use">¶</a></h4><blockquote>
+<ul>
+<li>The agent learns to call external APIs for extra information that is missing from the model weights (often hard to change after pre-training), including current information, code execution capability, access to proprietary information sources and more.</li>
+<li>智能体学习调用外部 API 以获取模型权重中缺失的额外信息（通常在预训练后难以更改），包括当前信息、代码执行能力、对专有信息源的访问等。</li>
+</ul>
+</blockquote>
+</div>
+</div>
+</div>
+</div></section></section><section><section>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h4 id="%E6%8F%90%E7%A4%BA%E8%AF%8D%E5%B7%A5%E7%A8%8B">提示词工程<a class="anchor-link" href="#%E6%8F%90%E7%A4%BA%E8%AF%8D%E5%B7%A5%E7%A8%8B">¶</a></h4><p>通过提示词工程，定义协议，可以让用户按照协议输入，也可以让大模型返回协议，解析文本中的返回，之后<strong>交给工程代码去调用</strong>。</p>
+<h5 id="%E6%B5%81%E7%A8%8B">流程<a class="anchor-link" href="#%E6%B5%81%E7%A8%8B">¶</a></h5><ol>
+<li>定义协议，让LLM遵循</li>
+<li>用户发起发起查询</li>
+<li>LLM处理用户查询，通过自然语言理解用户的意图，可能会请求获取更多信息或者使用某个工具</li>
+<li>用户解析LLM输出，通过匹配规则去执行相应的工具</li>
+<li>用户返回工具所需参数</li>
+<li>LLM格式化工具调用，响应请求参数</li>
+<li>用户本地执行工具，返回工具响应结果</li>
+<li>LLM观测数据，并回答结果</li>
+</ol>
+</div>
+</div>
+</div>
+</div></section></section><section><section>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h5 id="%E7%97%9B%E7%82%B9">痛点<a class="anchor-link" href="#%E7%97%9B%E7%82%B9">¶</a></h5><ul>
+<li>早期大模型能力不足，难以严格遵守指令</li>
+<li>早期大模型返回内容可能会不标准，可能会多余返回：“好的，下面是您需要的..."类似的开场词</li>
+<li>早期大模型上下文有限，难以处理复杂参数工具</li>
+</ul>
+</div>
+</div>
+</div>
+</div></section></section><section><section><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-ipython3"><pre><span></span><span class="o">//</span> <span class="n">Message</span> <span class="n">结构用于表示聊天消息</span>
+<span class="nb">type</span> <span class="n">Message</span> <span class="n">struct</span> <span class="p">{</span>
+	<span class="n">Role</span>    <span class="n">string</span> <span class="err">`</span><span class="n">json</span><span class="p">:</span><span class="s2">"role"</span><span class="err">`</span>
+	<span class="n">Content</span> <span class="n">string</span> <span class="err">`</span><span class="n">json</span><span class="p">:</span><span class="s2">"content"</span><span class="err">`</span>
+<span class="p">}</span>
+
+<span class="o">//</span> <span class="n">RequestPayload</span> <span class="n">结构用于表示发送给</span> <span class="n">API</span> <span class="n">的整个请求体</span>
+<span class="nb">type</span> <span class="n">RequestPayload</span> <span class="n">struct</span> <span class="p">{</span>
+	<span class="n">Model</span>    <span class="n">string</span>    <span class="err">`</span><span class="n">json</span><span class="p">:</span><span class="s2">"model"</span><span class="err">`</span>
+	<span class="n">Messages</span> <span class="p">[]</span><span class="n">Message</span> <span class="err">`</span><span class="n">json</span><span class="p">:</span><span class="s2">"messages"</span><span class="err">`</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+</div></section></section><section><section><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [6]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">func</span> <span class="n">sendHTTPRequest</span><span class="p">(</span><span class="n">url</span> <span class="n">string</span><span class="p">,</span> <span class="n">apiKey</span> <span class="n">string</span><span class="p">,</span> <span class="n">payload</span> <span class="n">RequestPayload</span><span class="p">)</span> <span class="p">(</span><span class="n">string</span><span class="p">,</span> <span class="n">string</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">jsonData</span><span class="p">,</span> <span class="n">err</span> <span class="o">:=</span> <span class="n">json</span><span class="o">.</span><span class="n">Marshal</span><span class="p">(</span><span class="n">payload</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">err</span> <span class="o">!=</span> <span class="n">nil</span> <span class="p">{</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">Fatalf</span><span class="p">(</span><span class="s2">"无法编码 JSON 请求体: %v"</span><span class="p">,</span> <span class="n">err</span><span class="p">)</span>
+    <span class="p">}</span>
+
+    <span class="n">req</span><span class="p">,</span> <span class="n">err</span> <span class="o">:=</span> <span class="n">http</span><span class="o">.</span><span class="n">NewRequest</span><span class="p">(</span><span class="s2">"POST"</span><span class="p">,</span> <span class="n">url</span><span class="p">,</span> <span class="nb">bytes</span><span class="o">.</span><span class="n">NewBuffer</span><span class="p">(</span><span class="n">jsonData</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">err</span> <span class="o">!=</span> <span class="n">nil</span> <span class="p">{</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">Fatalf</span><span class="p">(</span><span class="s2">"无法创建 HTTP 请求: %v"</span><span class="p">,</span> <span class="n">err</span><span class="p">)</span>
+    <span class="p">}</span>
+
+    <span class="n">req</span><span class="o">.</span><span class="n">Header</span><span class="o">.</span><span class="n">Set</span><span class="p">(</span><span class="s2">"Content-Type"</span><span class="p">,</span> <span class="s2">"application/json"</span><span class="p">)</span>
+    <span class="n">req</span><span class="o">.</span><span class="n">Header</span><span class="o">.</span><span class="n">Set</span><span class="p">(</span><span class="s2">"Authorization"</span><span class="p">,</span> <span class="s2">"Bearer "</span><span class="o">+</span><span class="n">apiKey</span><span class="p">)</span>
+
+    <span class="n">client</span> <span class="o">:=</span> <span class="o">&amp;</span><span class="n">http</span><span class="o">.</span><span class="n">Client</span><span class="p">{}</span>
+    <span class="n">resp</span><span class="p">,</span> <span class="n">err</span> <span class="o">:=</span> <span class="n">client</span><span class="o">.</span><span class="n">Do</span><span class="p">(</span><span class="n">req</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">err</span> <span class="o">!=</span> <span class="n">nil</span> <span class="p">{</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">Fatalf</span><span class="p">(</span><span class="s2">"发送 HTTP 请求失败: %v"</span><span class="p">,</span> <span class="n">err</span><span class="p">)</span>
+    <span class="p">}</span>
+    <span class="n">defer</span> <span class="n">resp</span><span class="o">.</span><span class="n">Body</span><span class="o">.</span><span class="n">Close</span><span class="p">()</span>
+
+    <span class="n">body</span><span class="p">,</span> <span class="n">err</span> <span class="o">:=</span> <span class="n">ioutil</span><span class="o">.</span><span class="n">ReadAll</span><span class="p">(</span><span class="n">resp</span><span class="o">.</span><span class="n">Body</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">err</span> <span class="o">!=</span> <span class="n">nil</span> <span class="p">{</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">Fatalf</span><span class="p">(</span><span class="s2">"无法读取 HTTP 响应体: %v"</span><span class="p">,</span> <span class="n">err</span><span class="p">)</span>
+    <span class="p">}</span>
+
+    <span class="k">return</span> <span class="n">string</span><span class="p">(</span><span class="n">body</span><span class="p">),</span> <span class="n">resp</span><span class="o">.</span><span class="n">Status</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+</div></section></section><section><section><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">var</span> <span class="n">prompts</span> <span class="o">=</span> <span class="err">`</span>
+<span class="n">你是一个智能助手</span><span class="err">，</span><span class="n">具有以下工具</span><span class="err">：</span>
+
+<span class="mf">1.</span> <span class="n">天气工具</span> <span class="p">(</span><span class="n">WEATHER</span><span class="p">)</span>
+   <span class="o">-</span> <span class="n">格式</span><span class="err">：</span><span class="n">WEATHER</span><span class="p">:</span> <span class="n">城市名称</span>
+   <span class="o">-</span> <span class="n">功能</span><span class="err">：</span><span class="n">获取指定城市的当前天气情况</span>
+
+<span class="mf">2.</span> <span class="n">计算工具</span> <span class="p">(</span><span class="n">CALCULATE</span><span class="p">)</span>
+   <span class="o">-</span> <span class="n">格式</span><span class="err">：</span><span class="n">CALCULATE</span><span class="p">:</span> <span class="n">数学表达式</span>
+   <span class="o">-</span> <span class="n">功能</span><span class="err">：</span><span class="n">执行数学计算</span>
+
+<span class="n">重要规则</span><span class="err">：</span>
+<span class="o">-</span> <span class="n">必须严格遵循上述格式</span>
+<span class="o">-</span> <span class="n">只有在确实需要使用工具时才使用</span>
+<span class="o">-</span> <span class="n">工具调用应该是输出的唯一内容</span>
+<span class="o">-</span> <span class="n">使用工具后</span><span class="err">，</span><span class="n">还需要对结果进行自然语言解释</span>
+
+<span class="n">示例</span><span class="err">：</span>
+
+<span class="n">用户</span><span class="p">:</span> <span class="n">我想知道北京的天气</span>
+<span class="n">助手</span><span class="p">:</span> <span class="n">WEATHER</span><span class="p">:</span> <span class="n">北京</span>
+
+<span class="n">用户</span><span class="p">:</span> <span class="n">帮我计算15乘以23</span>
+<span class="n">助手</span><span class="p">:</span> <span class="n">CALCULATE</span><span class="p">:</span> <span class="mi">15</span> <span class="o">*</span> <span class="mi">23</span>
+<span class="err">`</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+</div></section></section><section><section><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-ipython3"><pre><span></span><span class="o">%%</span>
+<span class="n">var</span> <span class="p">(</span>
+    <span class="n">url</span>    <span class="o">=</span> <span class="s2">"https://api.gptapi.us/v1/chat/completions"</span>
+    <span class="n">apiKey</span> <span class="n">string</span>
+<span class="p">)</span>
+
+<span class="n">gonbui</span><span class="o">.</span><span class="n">RequestInput</span><span class="p">(</span><span class="s2">"请输入Api Key: "</span><span class="p">,</span> <span class="n">true</span><span class="p">)</span>
+<span class="n">_</span><span class="p">,</span> <span class="n">err</span> <span class="o">:=</span> <span class="n">fmt</span><span class="o">.</span><span class="n">Scan</span><span class="p">(</span><span class="o">&amp;</span><span class="n">apiKey</span><span class="p">)</span>
+<span class="k">if</span> <span class="n">err</span> <span class="o">!=</span> <span class="n">nil</span> <span class="p">{</span>
+    <span class="n">log</span><span class="o">.</span><span class="n">Fatalf</span><span class="p">(</span><span class="s2">"无法读取 API Key: %v"</span><span class="p">,</span> <span class="n">err</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="o">//</span> <span class="n">构建请求体数据</span>
+<span class="n">payload</span> <span class="o">:=</span> <span class="n">RequestPayload</span><span class="p">{</span>
+    <span class="n">Model</span><span class="p">:</span> <span class="s2">"gpt-4o-mini"</span><span class="p">,</span>
+    <span class="n">Messages</span><span class="p">:</span> <span class="p">[]</span><span class="n">Message</span><span class="p">{</span>
+        <span class="p">{</span>
+          <span class="n">Role</span><span class="p">:</span> <span class="s2">"developer"</span><span class="p">,</span>
+          <span class="n">Content</span><span class="p">:</span> <span class="n">prompts</span><span class="p">,</span>
+        <span class="p">},</span>
+        <span class="p">{</span>
+          <span class="n">Role</span><span class="p">:</span>    <span class="s2">"user"</span><span class="p">,</span>
+          <span class="n">Content</span><span class="p">:</span> <span class="s2">"请告诉我北京的天气"</span><span class="p">,</span>
+        <span class="p">},</span>
+    <span class="p">},</span>
+<span class="p">}</span>
+
+<span class="n">body</span><span class="p">,</span> <span class="n">resp</span> <span class="o">:=</span> <span class="n">sendHTTPRequest</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">apiKey</span><span class="p">,</span> <span class="n">payload</span><span class="p">)</span>
+
+<span class="n">fmt</span><span class="o">.</span><span class="n">Println</span><span class="p">(</span><span class="s2">"响应状态码:"</span><span class="p">,</span> <span class="n">resp</span><span class="p">)</span>
+<span class="n">var</span> <span class="n">prettyJSON</span> <span class="nb">bytes</span><span class="o">.</span><span class="n">Buffer</span>
+<span class="k">if</span> <span class="n">err</span> <span class="o">:=</span> <span class="n">json</span><span class="o">.</span><span class="n">Indent</span><span class="p">(</span><span class="o">&amp;</span><span class="n">prettyJSON</span><span class="p">,</span> <span class="p">[]</span><span class="n">byte</span><span class="p">(</span><span class="n">body</span><span class="p">),</span> <span class="s2">""</span><span class="p">,</span> <span class="s2">"  "</span><span class="p">);</span> <span class="n">err</span> <span class="o">==</span> <span class="n">nil</span> <span class="p">{</span>
+    <span class="n">fmt</span><span class="o">.</span><span class="n">Println</span><span class="p">(</span><span class="s2">"响应体:</span><span class="se">\n</span><span class="s2">"</span><span class="p">,</span> <span class="n">prettyJSON</span><span class="o">.</span><span class="n">String</span><span class="p">())</span>
+<span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+    <span class="n">fmt</span><span class="o">.</span><span class="n">Println</span><span class="p">(</span><span class="s2">"响应体 (原始):</span><span class="se">\n</span><span class="s2">"</span><span class="p">,</span> <span class="n">string</span><span class="p">(</span><span class="n">body</span><span class="p">))</span>
+<span class="p">}</span>
+</pre></div>
+</div>
 </div>
 </div>
 </div>
@@ -7466,9 +7675,29 @@ main {
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-go"><pre><span></span><span class="w"> </span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">func</span> <span class="n">getWeather</span><span class="p">(</span><span class="n">location</span> <span class="n">string</span><span class="p">)</span> <span class="p">(</span><span class="o">*</span><span class="n">CommonWeatherResponse</span><span class="p">,</span> <span class="n">error</span><span class="p">)</span> <span class="p">{</span>
+	<span class="n">weatherGetter</span><span class="p">,</span> <span class="n">err</span> <span class="o">:=</span> <span class="n">tools</span><span class="o">.</span><span class="n">NewWeatherAPIWeatherGetter</span><span class="p">()</span>
+	<span class="k">if</span> <span class="n">err</span> <span class="o">!=</span> <span class="n">nil</span> <span class="p">{</span>
+		<span class="k">return</span> <span class="n">nil</span><span class="p">,</span> <span class="n">errors</span><span class="o">.</span><span class="n">Wrap</span><span class="p">(</span><span class="n">err</span><span class="p">,</span> <span class="s2">"failed to create weather getter"</span><span class="p">)</span>
+	<span class="p">}</span>
+<span class="p">}</span>
 </pre></div>
 </div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h5 id="Function-Calling">Function Calling<a class="anchor-link" href="#Function-Calling">¶</a></h5><blockquote>
+<p>你可以通过函数调用让模型访问你自己的自定义代码。根据系统提示和消息，模型可能会决定调用这些函数——而不是（或除了）生成文本或音频。
+然后，你将执行函数代码，发回结果，模型会将这些结果整合到其最终响应中。</p>
+</blockquote>
+<img alt="No description has been provided for this image" src="pics/function-calling-diagram-steps.png" width="40%"/>
 </div>
 </div>
 </div>
