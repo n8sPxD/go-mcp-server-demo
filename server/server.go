@@ -15,17 +15,19 @@ type MCPServer struct {
 	reader      io.Reader
 	writer      io.Writer
 	logger      *log.Logger
+	file        *os.File
 	tools       tools.ToolsMap
 	initialized bool
 
 	ShutdownSignal chan struct{} // 用于通知主循环服务器已关闭
 }
 
-func NewMCPServer(reader io.Reader, writer io.Writer) *MCPServer {
+func NewMCPServer(reader io.Reader, writer io.Writer, file *os.File) *MCPServer {
 	return &MCPServer{
 		reader:         reader,
 		writer:         writer,
-		logger:         log.New(os.Stderr, "[MCP Server] ", log.LstdFlags),
+		file:           file,
+		logger:         log.New(file, "[MCP Server] ", log.LstdFlags),
 		tools:          make(map[string]tools.ToolDefinition),
 		initialized:    false,
 		ShutdownSignal: make(chan struct{}),
@@ -61,7 +63,11 @@ func (s *MCPServer) sendResponse(id *json.RawMessage, result any, err *ErrorObje
 		// Log and potentially panic or exit, depending on desired robustness.
 		return
 	}
-	s.logger.Printf("Sending response: %s\n", string(responseBytes))
+
+	// 打印格式化后响应
+	prettyResponse, _ := json.MarshalIndent(response, "", "  ")
+	s.logger.Printf("Sending formatted response: %s\n", string(prettyResponse))
+
 	// 直接写入响应体
 	if _, writeErr := s.writer.Write(responseBytes); writeErr != nil {
 		s.logger.Printf("Error writing body: %v", writeErr)
@@ -211,7 +217,14 @@ func (s *MCPServer) handleListTools(req RequestMessage) {
 
 // processMessage 解析并处理单个消息
 func (s *MCPServer) ProcessMessage(rawMessage []byte) {
-	s.logger.Printf("Received raw message: %s\n", string(rawMessage))
+	// 打印格式化后的消息
+	var tempMarshalMap map[string]interface{}
+	if err := json.Unmarshal(rawMessage, &tempMarshalMap); err == nil {
+		prettyMessage, _ := json.MarshalIndent(tempMarshalMap, "", "  ")
+		s.logger.Printf("DEBUG: Received message line: %s", string(prettyMessage)) // 调试日志
+	} else {
+		s.logger.Printf("DEBUG: Received message line: %s", string(rawMessage)) // 调试日志
+	}
 
 	// 首先尝试解析基本结构，以判断是请求还是通知 (通过有无ID)
 	var base BaseMessage
@@ -226,6 +239,12 @@ func (s *MCPServer) ProcessMessage(rawMessage []byte) {
 		// 再次解析为完整的 RequestMessage 结构
 		if err := json.Unmarshal(rawMessage, &req); err == nil && req.Method != "" {
 			s.logger.Printf("Parsed as Request: ID=%s, Method=%s\n", string(*req.ID), req.Method)
+			// 打印格式化的请求内容
+			if s.logger != nil {
+				prettyReq, _ := json.MarshalIndent(req, "", "  ")
+				s.logger.Printf("Received formatted request: %s\n", string(prettyReq))
+			}
+
 			switch req.Method {
 			case "initialize":
 				s.handleInitialize(req)
@@ -248,6 +267,12 @@ func (s *MCPServer) ProcessMessage(rawMessage []byte) {
 		var notif NotificationMessage
 		if err := json.Unmarshal(rawMessage, &notif); err == nil && notif.Method != "" {
 			s.logger.Printf("Parsed as Notification: Method=%s\n", notif.Method)
+			// 打印格式化的通知内容
+			if s.logger != nil {
+				prettyNotif, _ := json.MarshalIndent(notif, "", "  ")
+				s.logger.Printf("Received formatted notification: %s\n", string(prettyNotif))
+			}
+
 			switch notif.Method {
 			case "initialized", "notifications/initialized":
 				s.handleInitialized(notif)

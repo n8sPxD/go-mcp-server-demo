@@ -25,7 +25,7 @@ func main() {
 	stdinReader := bufio.NewReader(os.Stdin)
 	stdoutWriter := bufio.NewWriter(os.Stdout)
 
-	server := server.NewMCPServer(stdinReader, stdoutWriter)
+	server := server.NewMCPServer(stdinReader, stdoutWriter, file)
 	logger.Println("MCP server instance created. Waiting for messages...")
 
 	go func() {
@@ -38,7 +38,7 @@ func main() {
 				logger.Println("Received an empty line, skipping.")
 				continue
 			}
-			logger.Printf("DEBUG: Received message line: %s", string(messageBytes)) // 调试日志
+
 			server.ProcessMessage(messageBytes)
 		}
 
