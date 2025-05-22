@@ -25,23 +25,23 @@ func main() {
 		),
 	)
 
-	resource := mcp.NewResource(
-		"docs://readme",
-		"Project README",
-		mcp.WithResourceDescription("The project's README file"),
-		mcp.WithMIMEType("text/markdown"),
-	)
+	// resource := mcp.NewResource(
+	// 	"docs://readme",
+	// 	"Project README",
+	// 	mcp.WithResourceDescription("The project's README file"),
+	// 	mcp.WithMIMEType("text/markdown"),
+	// )
 
-	prompt := mcp.NewPrompt("greeting",
-		mcp.WithPromptDescription("A friendly greeting prompt"),
-		mcp.WithArgument("name",
-			mcp.ArgumentDescription("Name of the person to greet"),
-		),
-	)
+	// prompt := mcp.NewPrompt("greeting",
+	// 	mcp.WithPromptDescription("A friendly greeting prompt"),
+	// 	mcp.WithArgument("name",
+	// 		mcp.ArgumentDescription("Name of the person to greet"),
+	// 	),
+	// )
 
-	s.AddResource(resource, readmeResourceHandler)
+	// s.AddResource(resource, readmeResourceHandler)
 	s.AddTool(tool, helloHandler)
-	s.AddPrompt(prompt, greetingPromptHandler)
+	// s.AddPrompt(prompt, greetingPromptHandler)
 
 	if err := server.ServeStdio(s); err != nil {
 		fmt.Printf("Server error: %v\n", err)
