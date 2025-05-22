@@ -1,0 +1,22 @@
+<日志输出标准>
+    日志输出格式需要按照统一标准，不允许采取规则外的输出方式。输出标准如下：
+    ```
+    logs.Infof("TestMethodToLLM|userID=%d,companyID=%d|This is a test method output", userID, companyID)
+    logs.Errorf("TestErrorMethodToLLM|userID=%d,round=%d|This is a error test method output, err:%+v", userID, round, err)
+    ```
+    1. 输出格式通过"|"符号进行分隔，输出包括三个部分：方法名，自定义参数，日志内容。日志输出的顺序必须严格按照：方法名，自定义参数，日志内容，除非自定义参数需要为空，则可以去除这一部分。详细请参考<日志顺序说明>。
+    2. 在日志的开头打印方法名，例如例子中的TestMethodToLLM。
+    3. 在日志的第二部分打印自定义参数，自定义参数是可能在调试中会用到的参数，如例子中的userID,companyID。对于每一个参数，必须是KV结构"xxx=%v"...，多个参数使用英文小写逗号拼接。
+    4. 在日志的第三部分打印自定义的日志内容，如果是错误日志，需要携带上前文可能存在的error，在例子中对应err。对于error的输出格式必须要求是%+v，不得修改。
+    5. 如果对于当前日志，没有合适的自定义参数，即第二部分可以去打印，便于调试，则可以跳过第二部分，只保留第一部分方法名和第三部分日志内容。
+    6. 不允许为第二部分自定义参数填写任何KV结构以外的参数，例如success，error这种基本字符串。如果实在没有合适的有帮助的调试信息，可以参考第5点，放弃第二部分的打印。
+
+    <日志顺序说明>
+        ```
+        // 正确的顺序
+        logs.Infof("DeleteUploadFile|fileID=%d|success", req.FileID)
+        // 错误的顺序
+        logs.Infof("DeleteUploadFile|success|fileID=%d", req.FileID)
+        ```
+    </日志顺序说明>
+</日志输出标准>
